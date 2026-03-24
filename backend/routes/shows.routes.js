@@ -4,6 +4,7 @@ const auth = require("../middleware/auth.middleware");
 const { getShowCollection } = require("../models/Show");
 const { getUserCollection } = require("../models/User");
 const { ObjectId } = require("mongodb");
+const optionalAuth = require("../middleware/optionalAuth.middleware");
 
 router.post("/", auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
@@ -32,39 +33,50 @@ router.delete("/:id", auth(["staff", "admin"]), async (req, res) => {
     });
 });
 
-router.get("/:id", auth(["user", "admin"]), async (req, res) => {
+router.get("/:id", optionalAuth, async (req, res) => {
     const shows = getShowCollection();
     const users = getUserCollection();
 
     const showId = new ObjectId(req.params.id);
 
-    const show = await shows.findOne({ _id: showId });
+    try {
+        const show = await shows.findOne({ _id: showId });
 
-    // 📌 Add to history
-    await users.updateOne(
-        { _id: new ObjectId(req.user.id) },
-        {
-            $addToSet: {
-                history: showId
-            }
+        if (!show) {
+            return res.status(404).json({ error: "Show not found" });
         }
-    );
 
-    res.json(show);
+        // 📌 Add to history
+        // ✅ Only update if logged in
+        if (req.user) {
+            await users.updateOne(
+                { _id: new ObjectId(req.user.id) },
+                {
+                    $addToSet: {
+                        history: showId
+                    }
+                }
+            );
+        }
+
+        res.json(show);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 router.get("/", async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 20;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
 
-  const shows = await getShowCollection()
-    .find({})
-    .sort({ popularity: -1 })
-    .skip((page - 1) * limit)
-    .limit(limit)
-    .toArray();
+    const shows = await getShowCollection()
+        .find({})
+        .sort({ popularity: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray();
 
-  res.json(shows);
+    res.json(shows);
 });
 
 module.exports = router;

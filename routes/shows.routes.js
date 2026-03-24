@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../middleware/auth.middleware");
 const { getShowCollection } = require("../models/Show");
 
-router.post("/", async (req, res) => {
+router.post("/", auth(["staff", "admin"]), async (req, res) => {
   const collection = getShowCollection();
   const show = req.body;
 
@@ -18,7 +19,7 @@ router.post("/", async (req, res) => {
   res.json({ status: "success", data: show });
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth(["staff", "admin"]), async (req, res) => {
   const collection = getShowCollection();
   const showId = parseInt(req.params.id);
 

@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/auth.middleware");
 
+const { ObjectId } = require("mongodb");
+
 const { getRatingCollection } = require("../models/Rating");
 const { getShowCollection } = require("../models/Show");
 
@@ -9,7 +11,16 @@ const { getShowCollection } = require("../models/Show");
 // ⭐ Add / Update rating
 router.post("/", auth(["user", "admin"]), async (req, res) => {
     try {
-        const { userId, showId, rating, review } = req.body;
+        if (!ObjectId.isValid(req.body.showId)) {
+            return res.status(400).json({ error: "Invalid showId" });
+        }
+
+        // const { userId, showId, rating, review } = req.body;
+        const showId = new ObjectId(req.body.showId);
+        const userId = new ObjectId(req.user.id);
+        const rating = req.body.rating;
+        const review = req.body.review;
+
 
         if (rating < 1 || rating > 10) {
             return res.status(400).json({ error: "Invalid rating" });
@@ -18,11 +29,18 @@ router.post("/", auth(["user", "admin"]), async (req, res) => {
         const ratings = getRatingCollection();
         const shows = getShowCollection();
 
-        ratings.createIndex({ userId: 1, showId: 1 }, { unique: true });
+        // ratings.createIndex({ userId: 1, showId: 1 }, { unique: true });
 
-        const existing = await ratings.findOne({ userId, showId });
+        const existing = await ratings.findOne({
+            userId: userId,
+            showId: showId
+        });
 
-        if (req.user.role === "user" && existing.userId !== req.user.id) {
+        if (
+            existing &&
+            req.user.role === "user" &&
+            existing.userId.toString() !== req.user.id
+        ) {
             return res.status(403).json({ error: "Not allowed to edit this review" });
         }
 
@@ -85,7 +103,7 @@ router.get("/:showId", async (req, res) => {
     const ratings = getRatingCollection();
 
     const reviews = await ratings
-        .find({ showId: req.params.showId })
+        .find({ showId: new ObjectId(req.params.showId) })
         .limit(50)
         .toArray();
 
@@ -99,7 +117,9 @@ router.delete("/:id", auth(["user", "staff", "admin"]), async (req, res) => {
         const ratings = getRatingCollection();
         const shows = getShowCollection();
 
-        const review = await ratings.findOne({ _id: req.params.id });
+        const reviewId = new ObjectId(req.params.id);
+
+        const review = await ratings.findOne({ _id: reviewId });
 
         if (!review) {
             return res.status(404).json({ error: "Review not found" });

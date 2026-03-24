@@ -12,6 +12,7 @@ const statsRoutes = require("./routes/stats.routes");
 const showsRoutes = require("./routes/shows.routes");
 const ratingRoutes = require("./routes/ratings.routes");
 const authRoutes = require("./routes/auth.routes");
+const recommendationRoutes = require("./routes/recommendation.routes");
 
 const app = express();
 app.use(express.json());
@@ -22,6 +23,7 @@ app.use("/stats", statsRoutes);
 app.use("/shows", showsRoutes);
 app.use("/ratings", ratingRoutes);
 app.use("/auth", authRoutes);
+app.use("/recommendations", recommendationRoutes);
 
 async function start() {
   await connectDB();

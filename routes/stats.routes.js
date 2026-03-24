@@ -34,7 +34,7 @@ const { getShowCollection } = require("../models/Show");
 // });
 
 // Genre popularity & rating
-router.get('/genres', auth("staff"), async (req, res) => {
+router.get('/genres', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const stats = await collection.aggregate([
         { $unwind: "$genres" },
@@ -51,7 +51,7 @@ router.get('/genres', auth("staff"), async (req, res) => {
 });
 
 // Yearly Release Trends
-router.get('/trends', auth("staff"), async (req, res) => {
+router.get('/trends', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const stats = await collection.aggregate([
         { $project: { year: { $substr: ["$first_air_date", 0, 4] } } },
@@ -63,7 +63,7 @@ router.get('/trends', auth("staff"), async (req, res) => {
 });
 
 // Content "Hidden Gems" (High rating, low popularity)
-router.get('/hidden-gems', auth("staff"), async (req, res) => {
+router.get('/hidden-gems', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const gems = await collection.find({
         vote_average: { $gt: 8 },
@@ -74,7 +74,7 @@ router.get('/hidden-gems', auth("staff"), async (req, res) => {
 });
 
 // 1. Average Vote by Genre
-router.get('/rating-by-genre', auth("staff"), async (req, res) => {
+router.get('/rating-by-genre', auth(["staff", "admin"]), async (req, res) => {
     try {
         const collection = getShowCollection();
         const stats = await collection.aggregate([
@@ -98,7 +98,7 @@ router.get('/rating-by-genre', auth("staff"), async (req, res) => {
 });
 
 // 2. Yearly Trends (Releases per year)
-router.get('/yearly-trends', auth("staff"), async (req, res) => {
+router.get('/yearly-trends', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const trends = await collection.aggregate([
         { $project: { year: { $substr: ["$first_air_date", 0, 4] } } },
@@ -109,7 +109,7 @@ router.get('/yearly-trends', auth("staff"), async (req, res) => {
 });
 
 // 3. Vietnam Availability Ratio
-router.get('/availability', auth("staff"), async (req, res) => {
+router.get('/availability', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const avail = await collection.aggregate([
         { $group: { _id: "$available_in_vietnam", count: { $sum: 1 } } }
@@ -118,7 +118,7 @@ router.get('/availability', auth("staff"), async (req, res) => {
 });
 
 // Statistics: Popularity vs Rating Correlation
-router.get('/hot-takes', auth("staff"), async (req, res) => {
+router.get('/hot-takes', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     // Finds shows with high popularity but low ratings (The "Controversial" shows)
     const stats = await collection.find({
@@ -129,7 +129,7 @@ router.get('/hot-takes', auth("staff"), async (req, res) => {
 });
 
 // Statistics: Language Distribution
-router.get('/languages', auth("staff"), async (req, res) => {
+router.get('/languages', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const stats = await collection.aggregate([
         { $unwind: "$languages" },
@@ -139,7 +139,7 @@ router.get('/languages', auth("staff"), async (req, res) => {
     res.json(stats);
 });
 
-router.get('/summary', auth("staff"), async (req, res) => {
+router.get('/summary', auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const summary = await collection.aggregate([
         {

@@ -10,10 +10,10 @@ const { getUserCollection } = require("../models/User");
 router.post("/register", async (req, res) => {
     try {
         const users = getUserCollection();
-        const { username, email, password } = req.body;
+        const { username, email, password, country } = req.body;
 
-        const existing = await users.findOne({ email });
-        if (existing) return res.status(400).json({ error: "Email already exists" });
+        const existing = await users.findOne({ username });
+        if (existing) return res.status(400).json({ error: "Username already exists" });
 
         const hashed = await bcrypt.hash(password, 10);
 
@@ -21,6 +21,7 @@ router.post("/register", async (req, res) => {
             username,
             email,
             password: hashed,
+            country,
             role: "user",
             createdAt: new Date(),
             history: []
@@ -40,17 +41,21 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     try {
         const users = getUserCollection();
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        const user = await users.findOne({ email });
+        const user = await users.findOne({ username });
         if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.status(400).json({ error: "Invalid credentials" });
 
+        if (!process.env.JWT_SECRET) {
+            throw new Error("JWT_SECRET is missing in .env");
+        }
+
         const token = jwt.sign(
             {
-                id: user._id,
+                id: user._id.toString(),
                 role: user.role
             },
             process.env.JWT_SECRET,
@@ -60,7 +65,7 @@ router.post("/login", async (req, res) => {
         res.json({
             token,
             user: {
-                id: user._id,
+                id: user._id.toString(),
                 role: user.role,
                 username: user.username
             }

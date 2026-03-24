@@ -92,4 +92,69 @@ router.get("/:showId", async (req, res) => {
     res.json(reviews);
 });
 
+
+// 🗑 Delete a review
+router.delete("/:id", auth(["user", "staff", "admin"]), async (req, res) => {
+    try {
+        const ratings = getRatingCollection();
+        const shows = getShowCollection();
+
+        const review = await ratings.findOne({ _id: req.params.id });
+
+        if (!review) {
+            return res.status(404).json({ error: "Review not found" });
+        }
+
+        // 🔒 Ownership / permission check
+        if (
+            req.user.role === "user" &&
+            review.userId.toString() !== req.user.id
+        ) {
+            return res.status(403).json({ error: "Not allowed" });
+        }
+
+        await ratings.deleteOne({ _id: review._id });
+
+        // 🔄 Recalculate rating
+        const agg = await ratings.aggregate([
+            { $match: { showId: review.showId } },
+            {
+                $group: {
+                    _id: "$showId",
+                    avg: { $avg: "$rating" },
+                    count: { $sum: 1 }
+                }
+            }
+        ]).toArray();
+
+        if (agg.length > 0) {
+            await shows.updateOne(
+                { _id: review.showId },
+                {
+                    $set: {
+                        vote_average: agg[0].avg,
+                        vote_count: agg[0].count
+                    }
+                }
+            );
+        } else {
+            // no reviews left
+            await shows.updateOne(
+                { _id: review.showId },
+                {
+                    $set: {
+                        vote_average: 0,
+                        vote_count: 0
+                    }
+                }
+            );
+        }
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

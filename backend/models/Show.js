@@ -23,7 +23,7 @@ async function createIndexes() {
 
     await collection.createIndex({ id: 1 }, { unique: true });
 
-    console.log("✅ Indexes created");
+    console.log("✅ Indexes for \"Shows\" created");
   } catch (e) {
     console.log("Index setup note:", e.message);
   }

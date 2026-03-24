@@ -53,4 +53,18 @@ router.get("/:id", auth(["user", "admin"]), async (req, res) => {
     res.json(show);
 });
 
+router.get("/", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 20;
+
+  const shows = await getShowCollection()
+    .find({})
+    .sort({ popularity: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .toArray();
+
+  res.json(shows);
+});
+
 module.exports = router;

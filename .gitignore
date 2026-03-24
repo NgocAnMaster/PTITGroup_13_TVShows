@@ -1,3 +1,5 @@
 node_modules/
-.env
+backend/.env
+backend/node_modules/
 scripts/
+frontend/node_modules/

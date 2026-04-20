@@ -9,7 +9,7 @@ const { getShowCollection } = require("../models/Show");
 
 
 // ⭐ Add / Update rating
-router.post("/", auth(["user", "admin"]), async (req, res) => {
+router.post("/", auth(["user", "staff", "admin"]), async (req, res) => {
     try {
         if (!ObjectId.isValid(req.body.showId)) {
             return res.status(400).json({ error: "Invalid showId" });
@@ -101,10 +101,22 @@ router.post("/", auth(["user", "admin"]), async (req, res) => {
 // ⭐ Get reviews for a show
 router.get("/:showId", async (req, res) => {
     const ratings = getRatingCollection();
+    const showId = new ObjectId(req.params.showId);
+
+    // Get query params with defaults
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = parseInt(req.query.skip) || 0;
+    const sortBy = req.query.sortBy || "createdAt"; // default sort field
+    const order = req.query.order === "asc" ? 1 : -1; // default descending
+
+    const sortOptions = {};
+    sortOptions[sortBy] = order;
 
     const reviews = await ratings
-        .find({ showId: new ObjectId(req.params.showId) })
-        .limit(50)
+        .find({ showId })
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
         .toArray();
 
     res.json(reviews);

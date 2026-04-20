@@ -6,6 +6,7 @@ import ShowDetail from "./pages/ShowDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
+import Stats from "./pages/Stats";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/shows/:id" element={<ShowDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/stats" element={<Stats />} />
           </Routes>
         </div>
       </BrowserRouter>

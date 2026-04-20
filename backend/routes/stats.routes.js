@@ -153,8 +153,8 @@ router.get('/summary', auth(["staff", "admin"]), async (req, res) => {
                 "average_popularity": [
                     { $group: { _id: null, avg: { $avg: "$popularity" } } }
                 ],
-                "vietnam_market_share": [
-                    { $group: { _id: "$available_in_vietnam", count: { $sum: 1 } } }
+                "average_show_votes": [
+                    { $group: { _id: null, avg: { $avg: "$vote_average" } } }
                 ]
             }
         }

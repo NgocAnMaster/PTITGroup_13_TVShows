@@ -8,6 +8,9 @@ export default function Navbar() {
     const activeLink = ({ isActive }) => 
         isActive ? "text-blue-400 font-medium" : "hover:text-gray-300 transition-colors";
 
+    // Permission Check
+    const canSeeStats = user && (user.role === "admin" || user.role === "staff");
+
     return (
         <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
             {/* Left Side: Navigation Links */}
@@ -22,6 +25,11 @@ export default function Navbar() {
                 <NavLink to="/search" className={activeLink}>
                     Search
                 </NavLink>
+
+                {/* Condition Link for Stats */}
+                {canSeeStats && (
+                    <NavLink to="/stats" className={activeLink}>Dashboard</NavLink>
+                )}
             </div>
 
             {/* Right Side: Auth Links */}

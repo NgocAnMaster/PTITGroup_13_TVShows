@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "../api/api"
+import { useAuth } from "../context/AuthContext";
 
 const API_URL = "http://localhost:3000";
 
 export default function ShowDetail() {
   const { id } = useParams();
+  const { user, sessionLoading } = useAuth();
   const navigate = useNavigate();
 
   const [show, setShow] = useState(null);
@@ -13,6 +16,11 @@ export default function ShowDetail() {
   useEffect(() => {
     fetchShow();
     fetchReviews();
+
+    // Record history if user is logged in
+    if (user) {
+      api.post(`/users/history/${id}`).catch(err => console.error("History error", err));
+    }
   }, [id]);
 
   async function fetchShow() {
@@ -25,6 +33,10 @@ export default function ShowDetail() {
     const res = await fetch(`${API_URL}/ratings/${id}`);
     const data = await res.json();
     setReviews(data);
+  }
+
+  if (sessionLoading) {
+    return <div className="p-10 text-white">Verifying session...</div>;
   }
 
   if (!show) return <div className="text-white p-4">Loading...</div>;

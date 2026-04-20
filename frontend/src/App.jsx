@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
 import Stats from "./pages/Stats";
+import History from "./pages/History";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/stats" element={<Stats />} />
+            <Route path="/history" element={<History />} />
           </Routes>
         </div>
       </BrowserRouter>

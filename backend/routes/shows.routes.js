@@ -48,16 +48,16 @@ router.get("/:id", optionalAuth, async (req, res) => {
 
         // 📌 Add to history
         // ✅ Only update if logged in
-        if (req.user) {
-            await users.updateOne(
-                { _id: new ObjectId(req.user.id) },
-                {
-                    $addToSet: {
-                        history: showId
-                    }
-                }
-            );
-        }
+        // if (req.user) {
+        //     await users.updateOne(
+        //         { _id: new ObjectId(req.user.id) },
+        //         {
+        //             $addToSet: {
+        //                 history: {showId: showId, lastViewed: new Date()}
+        //             }
+        //         }
+        //     );
+        // }
 
         res.json(show);
     } catch (err) {

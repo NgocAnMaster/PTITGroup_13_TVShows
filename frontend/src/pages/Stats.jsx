@@ -5,7 +5,7 @@ import axios from "axios";
 import api from "../api/api.js"
 
 export default function Stats() {
-    const { user } = useAuth();
+    const { user, sessionLoading } = useAuth();
     const [data, setData] = useState({
         summary: null,
         genres: [],
@@ -15,7 +15,14 @@ export default function Stats() {
     });
 
     // 1. Protection Logic
+    // 💡 1. Wait for AuthContext to finish reading localStorage
+    if (sessionLoading) {
+        return <div className="p-10 text-white">Verifying session...</div>;
+    }
+
+    // 💡 2. Now it is safe to check if the user exists
     if (!user) return <Navigate to="/login" />;
+    // 💡 3. Specific role check for Stats
     if (user.role !== "admin" && user.role !== "staff") {
         return <div className="text-white p-10 text-center text-2xl">🚫 Unauthorized Access</div>;
     }

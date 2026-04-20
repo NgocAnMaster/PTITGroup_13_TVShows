@@ -5,7 +5,7 @@ export default function Navbar() {
     const { user, logoutUser } = useAuth();
 
     // Helper for active styling
-    const activeLink = ({ isActive }) => 
+    const activeLink = ({ isActive }) =>
         isActive ? "text-blue-400 font-medium" : "hover:text-gray-300 transition-colors";
 
     // Permission Check
@@ -16,15 +16,20 @@ export default function Navbar() {
             {/* Left Side: Navigation Links */}
             <div className="flex gap-6">
                 <Link to="/" className="font-bold text-xl mr-2">🎬 TV Shows</Link>
-                
+
                 {/* end prop ensures Home isn't highlighted when on other pages */}
                 <NavLink to="/" end className={activeLink}>
                     Home
                 </NavLink>
-                
+
                 <NavLink to="/search" className={activeLink}>
                     Search
                 </NavLink>
+
+                {/* History link for any logged in user */}
+                {user && (
+                    <NavLink to="/history" className={activeLink}>History</NavLink>
+                )}
 
                 {/* Condition Link for Stats */}
                 {canSeeStats && (

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:3000";
 
 export default function ShowDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [show, setShow] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -30,9 +31,17 @@ export default function ShowDetail() {
 
   return (
     <div className="p-6 text-white">
+      {/* ⬅️ BACK BUTTON */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+      >
+        <span>←</span> Back to list
+      </button>
+
       {/* 🎬 HEADER */}
       <div className="flex flex-col md:flex-row gap-6">
-        
+
         {/* Poster (placeholder) */}
         <div className="w-full md:w-1/3">
           <div className="bg-gray-800 h-[400px] rounded-2xl flex items-center justify-center text-gray-400">

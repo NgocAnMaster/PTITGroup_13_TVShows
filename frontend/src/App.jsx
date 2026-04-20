@@ -1,23 +1,28 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import ShowDetail from "./pages/ShowDetail";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Navbar from "./components/Navbar";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="bg-black min-h-screen">
-        <nav className="p-4 flex gap-4 text-white">
-          <Link to="/">Home</Link>
-          <Link to="/search">Search</Link>
-        </nav>
+    <AuthProvider>
+      <BrowserRouter>
+        <div className="bg-black min-h-screen">
+          <Navbar />
 
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/shows/:id" element={<ShowDetail />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/shows/:id" element={<ShowDetail />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

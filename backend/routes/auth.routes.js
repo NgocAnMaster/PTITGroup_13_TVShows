@@ -44,10 +44,10 @@ router.post("/login", async (req, res) => {
         const { username, password } = req.body;
 
         const user = await users.findOne({ username });
-        if (!user) return res.status(400).json({ error: "Invalid credentials" });
+        if (!user) return res.status(400).json({ error: "Invalid username" });
 
         const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(400).json({ error: "Invalid credentials" });
+        if (!valid) return res.status(400).json({ error: "Wrong password" });
 
         if (!process.env.JWT_SECRET) {
             throw new Error("JWT_SECRET is missing in .env");

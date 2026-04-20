@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const API_URL = "http://localhost:3000";
 
 export async function fetchShows(page = 1) {
@@ -18,3 +20,18 @@ export async function fetchRecommendations(token) {
   });
   return res.json();
 }
+
+const api = axios.create({
+  baseURL: API_URL
+});
+
+// 🔥 attach token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default api;

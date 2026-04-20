@@ -6,7 +6,7 @@ const { getRecommendations, getCollaborativeRecommendations } = require("../serv
 
 
 // 🎯 Get recommendations for current user
-router.get("/", auth(["user", "admin"]), async (req, res) => {
+router.get("/", auth(["user", "staff", "admin"]), async (req, res) => {
     try {
         const { type } = req.query;
 

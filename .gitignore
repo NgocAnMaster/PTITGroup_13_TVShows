@@ -3,3 +3,6 @@ backend/.env
 backend/node_modules/
 scripts/
 frontend/node_modules/
+train_datasets/fetchshows_old.py
+train_datasets/tv_shows_vietnam_dataset_old.csv
+train_datasets/tv_shows_vietnam_dataset_old.json

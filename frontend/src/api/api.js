@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: API_URL
 });
 
+const token = localStorage.getItem("token");
+
 export async function fetchShows(page = 1) {
   const res = await fetch(`${API_URL}/shows?page=${page}`);
   return res.json();
@@ -21,7 +23,7 @@ export async function userHistory(query) {
   return res.json();
 }
 
-export async function fetchRecommendations(token) {
+export async function fetchRecommendations() {
   const res = await fetch(`${API_URL}/recommendations`, {
     headers: {
       Authorization: `Bearer ${token}`
@@ -45,7 +47,6 @@ api.interceptors.response.use(
 
 // 🔥 attach token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -39,7 +39,7 @@ export default function ShowDetail() {
     if (isFetching.current || (!hasMore && !reset)) return;
 
     isFetching.current = true;
-    loadingReviews(true);
+    setLoadingReviews(true);
     const currentSkip = reset ? 0 : skip;
 
     try {

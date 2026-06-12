@@ -6,6 +6,7 @@ const { getUserCollection } = require("../models/User");
 const { ObjectId } = require("mongodb");
 const optionalAuth = require("../middleware/optionalAuth.middleware");
 
+// Create/Update Show
 router.post("/", auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const show = req.body;
@@ -22,6 +23,7 @@ router.post("/", auth(["staff", "admin"]), async (req, res) => {
     res.json({ status: "success", data: show });
 });
 
+// Delete Show
 router.delete("/:id", auth(["staff", "admin"]), async (req, res) => {
     const collection = getShowCollection();
     const showId = parseInt(req.params.id);
@@ -33,38 +35,33 @@ router.delete("/:id", auth(["staff", "admin"]), async (req, res) => {
     });
 });
 
+// GET Single Show Details (Fixed ObjectId conversion error)
 router.get("/:id", optionalAuth, async (req, res) => {
     const shows = getShowCollection();
-    const users = getUserCollection();
-
-    const showId = new ObjectId(req.params.id);
+    const showParam = req.params.id;
 
     try {
-        const show = await shows.findOne({ _id: showId });
+        let query = {};
+        // If it is a valid 24-char hex string check by ObjectId, otherwise query numeric TMDB id
+        if (ObjectId.isValid(showParam)) {
+            query = { _id: new ObjectId(showParam) };
+        } else {
+            query = { id: parseInt(showParam) };
+        }
+
+        const show = await shows.findOne(query);
 
         if (!show) {
             return res.status(404).json({ error: "Show not found" });
         }
 
-        // 📌 Add to history
-        // ✅ Only update if logged in
-        // if (req.user) {
-        //     await users.updateOne(
-        //         { _id: new ObjectId(req.user.id) },
-        //         {
-        //             $addToSet: {
-        //                 history: {showId: showId, lastViewed: new Date()}
-        //             }
-        //         }
-        //     );
-        // }
-
-        res.json(show);
+        return res.json(show);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
     }
 });
 
+// Get Paginated Shows
 router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 20;

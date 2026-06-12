@@ -1,12 +1,33 @@
 import axios from "axios";
 
+// 🚀 Match this base URL port to your active backend server (usually 8000)
 const API_URL = "http://localhost:3000";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL
 });
 
-const token = localStorage.getItem("token");
+// Automatically inject token headers dynamically on all Axios-based requests
+api.interceptors.request.use((config) => {
+  const activeToken = localStorage.getItem("token");
+  if (activeToken) {
+    config.headers.Authorization = `Bearer ${activeToken}`;
+  }
+  return config;
+});
+
+// Handle global 401 Session logouts gracefully
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            window.location.href = "/login"; 
+        }
+        return Promise.reject(error);
+    }
+);
 
 export async function fetchShows(page = 1) {
   const res = await fetch(`${API_URL}/shows?page=${page}`);
@@ -23,34 +44,23 @@ export async function userHistory(query) {
   return res.json();
 }
 
+// ✅ FIXED: Grabs token directly inside the execution context thread dynamically
 export async function fetchRecommendations() {
+  const activeToken = localStorage.getItem("token");
+  
   const res = await fetch(`${API_URL}/recommendations`, {
     headers: {
-      Authorization: `Bearer ${token}`
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${activeToken || ""}`
     }
   });
+  
+  if (res.status === 401) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+    return { error: "Session unauthorized" };
+  }
+  
   return res.json();
 }
-
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem("user");
-            localStorage.removeItem("token");
-            window.location.href = "/login"; // Force redirect
-        }
-        return Promise.reject(error);
-    }
-);
-
-// 🔥 attach token
-api.interceptors.request.use((config) => {
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export default api;

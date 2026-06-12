@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api/api"
+import { api } from "../api/api"
 import { useAuth } from "../context/AuthContext";
 
 const API_URL = "http://localhost:3000";
@@ -39,7 +39,7 @@ export default function ShowDetail() {
     if (isFetching.current || (!hasMore && !reset)) return;
 
     isFetching.current = true;
-    setLoadingReviews(true);
+    loadingReviews(true);
     const currentSkip = reset ? 0 : skip;
 
     try {
@@ -98,10 +98,8 @@ export default function ShowDetail() {
   const handleAddOrUpdateReview = async (e) => {
     e.preventDefault();
     try {
-      // Your backend POST route handles both ADD and UPDATE (upsert)
-      // It expects { showId, rating, review } in the body
       const payload = {
-        showId: id, // from useParams
+        showId: id,
         rating: Number(newReview.rating),
         review: newReview.review
       };
@@ -125,7 +123,6 @@ export default function ShowDetail() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      // Since your backend uses POST for upserts based on userId + showId:
       const payload = {
         showId: id,
         rating: Number(editForm.rating),
@@ -145,7 +142,6 @@ export default function ShowDetail() {
   const handleDelete = async (reviewId) => {
     if (!window.confirm("Delete this review?")) return;
     try {
-      // Your backend expects DELETE /ratings/:id
       await api.delete(`/ratings/${reviewId}`);
       fetchReviews(true);
       fetchShow();
@@ -173,9 +169,9 @@ export default function ShowDetail() {
       {/* 🎬 HEADER */}
       <div className="flex flex-col md:flex-row gap-6 mb-10">
 
-        {/* Poster (placeholder) */}
+        {/* Poster */}
         <div className="w-full md:w-1/3">
-          <div className="bg-gray-800 h-[400px] rounded-2xl flex items-center justify-center text-gray-400 overflow-hidden">
+          <div className="bg-gray-800 h-[400px] rounded-2xl flex items-center justify-center text-gray-400 overflow-hidden shadow-lg shadow-black/30">
             <img
               src={show.poster_path || "https://placehold.co/270x400?text=No+Poster"}
               className="w-full h-full object-cover"
@@ -185,37 +181,79 @@ export default function ShowDetail() {
         </div>
 
         {/* Info */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold">{show.name}</h1>
-          <p className="opacity-70">{show.original_name}</p>
-
-          <div className="mt-2 text-yellow-400 text-lg font-semibold">
-            ⭐ {show.vote_average?.toFixed(1)} <span className="text-sm text-gray-400">({show.vote_count} votes)</span>
+        <div className="flex-1 space-y-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-bold">{show.name}</h1>
+              {show.type && (
+                <span className="bg-gray-800 text-gray-400 text-xs uppercase px-2 py-0.5 rounded font-mono font-bold tracking-wider border border-gray-700">
+                  {show.type}
+                </span>
+              )}
+            </div>
+            <p className="opacity-60 text-sm italic">{show.original_name}</p>
           </div>
 
-          <div className="mt-2 text-sm opacity-70">
-            {show.genres?.join(", ")}
+          <div className="text-yellow-400 text-lg font-semibold flex items-center gap-2">
+            ⭐ {show.vote_average?.toFixed(1)} 
+            <span className="text-sm text-gray-400">({show.vote_count} votes)</span>
           </div>
 
-          <div className="mt-2 text-sm opacity-70">
-            First Air: {show.first_air_date}
+          {show.genres && show.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {show.genres.map((genre, idx) => (
+                <span key={idx} className="bg-blue-900/40 text-blue-300 text-xs px-2.5 py-1 rounded-full border border-blue-800/50">
+                  {genre}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="text-sm text-gray-300 space-y-1 font-medium pt-2">
+            {show.release_date && (
+              <div><span className="text-gray-500">Release Date:</span> {show.release_date}</div>
+            )}
+            {show.runtime > 0 && (
+              <div><span className="text-gray-500">Runtime:</span> {show.runtime} mins</div>
+            )}
+            {show.num_seasons > 0 && (
+              <div><span className="text-gray-500">Seasons:</span> {show.num_seasons} | <span className="text-gray-500">Episodes:</span> {show.num_episodes}</div>
+            )}
           </div>
 
-          <div className="mt-2 text-sm opacity-70">
-            Seasons: {show.num_seasons} | Episodes: {show.num_episodes}
-          </div>
+          {/* 📝 OVERVIEW SECTION */}
+          {show.overview && (
+            <div className="pt-2">
+              <h3 className="text-sm font-semibold text-gray-400 mb-1">Overview</h3>
+              <p className="text-sm text-gray-300 leading-relaxed max-w-2xl bg-gray-900/30 p-3 rounded-xl border border-gray-800">
+                {show.overview}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* 🎥 TRAILER */}
-      {show.trailer && (
+      {show.trailer_url && (
         <div className="mt-8">
           <h2 className="text-xl mb-4 font-bold border-b border-gray-800 pb-2">🎥 Trailer</h2>
-          <video
-            controls
-            className="w-full rounded-xl shadow-lg shadow-black/50"
-            src={show.trailer}
-          />
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-xl shadow-black/60 border border-gray-800 bg-black">
+            {show.trailer_url.includes("youtube.com") || show.trailer_url.includes("youtu.be") ? (
+              <iframe
+                className="w-full h-full"
+                src={`https://www.youtube.com/embed/${show.trailer_url.split("v=")[1]?.split("&")[0] || show.trailer_url.split("/").pop()}`}
+                title={`${show.name} Trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <video
+                controls
+                className="w-full h-full"
+                src={show.trailer_url}
+              />
+            )}
+          </div>
         </div>
       )}
 
@@ -273,7 +311,6 @@ export default function ShowDetail() {
 
         <div className="space-y-6">
           {reviews.map((r) => {
-            // 💡 Match IDs carefully. Convert to string to be safe.
             const currentUserId = user?.id || user?._id;
             const reviewOwnerId = r.userId;
 
@@ -307,7 +344,6 @@ export default function ShowDetail() {
                       {/* Action Buttons */}
                       {canManage && (
                         <div className="flex gap-3 opacity-100 group-hover:opacity-50 transition-opacity">
-                          {/* Non-privileged users can only edit their OWN reviews */}
                           {(isOwner || isPrivileged) && (
                             <button onClick={() => startEdit(r)} className="text-blue-400 hover:text-blue-300 text-xs font-semibold">Edit</button>
                           )}

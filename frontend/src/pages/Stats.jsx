@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
-import api from "../api/api.js"
+import { api } from "../api/api.js"
 
 export default function Stats() {
     const { user, sessionLoading } = useAuth();

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { Link, Navigate } from "react-router-dom";
-import api from "../api/api";
+import { api } from "../api/api";
 import { useAuth } from "../context/AuthContext";
 
 export default function History() {

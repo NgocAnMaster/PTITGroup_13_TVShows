@@ -1,50 +1,39 @@
 const jwt = require("jsonwebtoken");
-
-// function auth(requiredRole = null) {
-//     return (req, res, next) => {
-//         const header = req.headers.authorization;
-
-//         if (!header) return res.status(401).json({ error: "No token" });
-
-//         const token = header.split(" ")[1];
-
-//         try {
-//             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-//             if (requiredRole && decoded.role !== requiredRole) {
-//                 return res.status(403).json({ error: "Forbidden" });
-//             }
-
-//             req.user = decoded;
-//             next();
-
-//         } catch (err) {
-//             res.status(401).json({ error: "Invalid token" });
-//         }
-//     };
-// }
+const { ObjectId } = require("mongodb");
+const { getUserCollection } = require("../models/User");
 
 function auth(roles = []) {
-    return (req, res, next) => {
-        const header = req.headers.authorization;
-
-        if (!header) return res.status(401).json({ error: "No token" });
+    return async (req, res, next) => {
+        const header = req.headers.authorization || req.headers["Authorization"];
+        if (!header || !header.toLowerCase().startsWith("bearer ")) {
+            return res.status(401).json({ error: "No token or invalid format" });
+        }
 
         const token = header.split(" ")[1];
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            
+            // Extract the user record directly using the database utility
+            const users = getUserCollection();
+            const user = await users.findOne({ _id: new ObjectId(decoded.id) });
 
-            // ✅ Allow multiple roles
-            if (roles.length && !roles.includes(decoded.role)) {
-                return res.status(403).json({ error: "Forbidden" });
+            if (!user) {
+                return res.status(401).json({ error: "User profile no longer exists" });
             }
 
-            req.user = decoded;
-            next();
+            // Check roles allowance matrix securely
+            if (roles.length && !roles.includes(user.role)) {
+                return res.status(403).json({ error: "Forbidden: Insufficient privileges" });
+            }
 
+            // Attach everything to req object safely
+            req.user = user;
+            req.user.id = user._id.toString(); // Backwards compatibility for req.user.id route dependencies
+
+            next();
         } catch (err) {
-            res.status(401).json({ error: "Invalid token" });
+            return res.status(401).json({ error: "Invalid or expired token" });
         }
     };
 }
